@@ -44,8 +44,8 @@ window.onload = function(){
                                         "networks": [{"uuid": "02159b65-a4ad-4c9e-a087-1f3426a333ae"}],
                                         "security_groups": [{"name": "default"}]}
                             }),
-        success: function(result) {
-            alert('ok');
+        success: function(data, status, request) {
+            console(request.getAllResponseHeaders();
         },
         error: function(result) {
             alert('error');
