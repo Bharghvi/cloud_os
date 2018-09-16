@@ -15,32 +15,40 @@
 
 <div class="container" style="width:30%">
   <h2  align="center">Cloud Enabled Lab</h2>
-  <form action="/action_page.php">
+  <form onsubmit="return launchInstance()">
     <div class="form-group">
-      <label for="email">Email:</label>
-      <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
+      <label for="username">Email:</label>
+      <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" value="gogo">
     </div>
     <div class="form-group">
-      <label for="pwd">Password:</label>
-      <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="pwd">
+      <label for="password">Password:</label>
+      <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" value="gogo123">
     </div>
+
+    <div class="form-group">
+      <label for="username">Instance Name:</label>
+      <input type="text" class="form-control" id="instanceName" placeholder="Enter Instance Name" name="instanceName" value="test-webd">
+    </div>
+
     <label>Flavor</label>
     <br>
-    <label class="radio-inline"><input id="tiny" type="radio" name="optradio" value="tiny" checked>Tiny</label>
-<label class="radio-inline"><input id="small" type="radio" name="optradio" value="small">Small</label>
-<label class="radio-inline"><input id="large" type="radio" name="optradio" value="large">Large</label>
-<br>
-<br>
-<label>OS type</label>
-<br>
-<label class="radio-inline" id="123"><input id="cirros" type="radio" name="optradio1" value="cirros" checked>CirrOS</label>
-<label class="radio-inline"><input id="centos" type="radio" name="optradio1" value="centos">CentOS</label>
-<label class="radio-inline"><input id="ubuntu" type="radio" name="optradio1" value="ubuntu">Ubuntu</label>
-<br>
-<br>
-    <button type="submit" class="btn btn-default" id="launch">Launch</button>
-  </form>
-</div>
+    <label class="radio-inline"><input id="tiny" type="radio" name="flavor" value="tiny" checked>Tiny (RAM: 512MB, Root-Disk: 1GB, VCPUs: 1)</label>
+    <br>
+    <label class="radio-inline"><input id="small" type="radio" name="flavor" value="ds2G">ds2G  (RAM: 2GB, Root-Disk: 10GB, VCPUs: 2)</label>
+    <!-- <label class="radio-inline"><input id="large" type="radio" name="flavor" value="large">Large</label> -->
+    <br>
+    <br>
+    <label>OS type</label>
+    <br>
+    <label class="radio-inline" id="123"><input id="cirros" type="radio" name="image" value="cirros" checked>CirrOS</label>
+    <label class="radio-inline"><input id="centos" type="radio" name="image" value="centos">CentOS</label>
+    <label class="radio-inline"><input id="ubuntu" type="radio" name="image" value="ubuntu">Ubuntu</label>
+    <br>
+    <br>
+        <button type="submit" class="btn btn-default" id="launch">Launch</button>
+      </form>
+      <div id="instanceUrl" style="margin: 20px; text-align: center;"></div>
+    </div>
 
 </body>
 </html>

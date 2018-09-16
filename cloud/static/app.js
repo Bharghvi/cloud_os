@@ -1,56 +1,211 @@
-console.log("Hi there");
+var urls = {
 
-window.onload = function(){
-  console.log("cool");
-  var x = document.getElementById("123");
-  var os_img;
-  var flavour;
+  "identityAuthentication" : "http://192.168.43.40/identity/v3/auth/tokens",
+  "bootInstance" : "http://192.168.43.40/compute/v2.1/servers",
+  "instanceDetails" : "http://192.168.43.40/compute/v2.1/servers",//append instance id (/id) or name(?name=)
+  "getInstanceUrl" : "http://192.168.43.40/compute/v2.1/servers",//append instance id (/id) and /action
 
-  if (document.getElementById('tiny').checked) {
-    flavour = document.getElementById('tiny').value; // put name of flavour
+}
+
+var methods = {
+
+  "identityAuthentication" : "POST",
+  "bootInstance" : "POST",
+  "instanceDetails" : "GET",
+  "getInstanceUrl" : "POST"
+
+}
+
+var authToken="";
+var headers = {};
+
+//network, flav and image id hardcoded as of now
+
+var imageId = {
+
+  "cirros" : "81984e40-624e-4610-86f0-870b380fa176",
+  "ubuntu" : "1f8f6a71-589b-4adb-93c0-a49e06530198",
+  "centos" : "1f8f6a71-589b-4adb-93c0-a49e06530198"
+
+}
+
+var flavourId = {
+
+  "tiny" : "1",
+  "ds2G" : "d3"
+
+}
+
+var networkId = {
+
+  "private-net" :  [{
+    "uuid" : "ee3fdab9-d701-4e72-960e-be9b268c5e3c"
+  }],
+
+}
+
+//config ends
+
+function launchInstance(){
+  var submitBtn = document.getElementById('launch');
+  submitBtn.innerHTML = "Launching...";
+  submitBtn.disabled = true;
+  var username = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+  
+  identityAuthenticate(username, password);
+  return false;
+}
+
+function bootInstance(){
+  var instanceName = document.getElementById('instanceName').value;
+  console.log(instanceName);
+  var flavor = document.getElementsByName('flavor');
+  for(var i=0;i<flavor.length;i++){
+    if(flavor[i].checked){
+      flavor = flavor[i].value;
+      break;
+    }
   }
-  else if (document.getElementById('small').checked) {
-    flavour = document.getElementById('small').value;
-  }
-  else if (document.getElementById('large').checked) {
-    flavour = document.getElementById('large').value;
+  var image = document.getElementsByName('image');
+  for(var i=0;i<image.length;i++){
+    if(image[i].checked){
+      image = image[i].value;
+      break;
+    }
   }
 
-  if (document.getElementById('cirros').checked) {
-    os_img = document.getElementById('cirros').value; // put image id of our openstack
-  }
-  else if (document.getElementById('centos').checked) {
-    os_img = document.getElementById('centos').value;
-  }
-  else if (document.getElementById('ubuntu').checked) {
-    os_img = document.getElementById('ubuntu').value;
-  }
-
-  $(document).ready(function(e) {
-    $('#launch').click(function(e) {
-      e.preventDefault();
-      $.ajax({
-        type: "POST",
-        url: "http://"+hostIP+":"+NOVAport+"/v2/"+tenantid+"/servers",
-        headers: { 'Content-Type' : 'application/json',
-                  'Accept' : 'application/json',
-                 'X-OpenStack-Nova-API-Version' : '2.11',
-                  'X-Auth-Token' : mytoken },
-        body: json.stringify({"server": {"name": "vm1",
-                                        "imageRef": "8275248f-1d55-47f7-808b-1208cfd1045d",
-                                        "flavorRef": "1",
-                                        "max_count": 1,
-                                        "min_count": 1,
-                                        "networks": [{"uuid": "02159b65-a4ad-4c9e-a087-1f3426a333ae"}],
-                                        "security_groups": [{"name": "default"}]}
-                            }),
-        success: function(data, status, request) {
-            console(request.getAllResponseHeaders();
+  var data = {
+    "server" : {
+        "name" : instanceName,
+        "imageRef" : imageId[image],
+        "key_name" : "keypair2",//hardcoded
+        "flavorRef" : flavourId[flavor],
+        "networks" : [{
+            "uuid" : "ee3fdab9-d701-4e72-960e-be9b268c5e3c"//hardcoded
+        }],
+        "availability_zone": "nova",
+        "OS-DCF:diskConfig": "AUTO",
+        "metadata" : {
+            "My Server Name" : "Apache1"
         },
-        error: function(result) {
-            alert('error');
+        "security_groups": [
+            {
+                "name": "default"
+            }
+        ]
+    }
+  };
+
+  makeApiCall(urls["bootInstance"], methods["bootInstance"], data ,headers, onBootSuccess);
+}
+
+function onBootSuccess(response, headers){
+  var submitBtn = document.getElementById('launch');
+  submitBtn.innerHTML = "Booting...";
+  response = JSON.parse(response);
+  seeIfInstanceIsActive(response["server"]["id"]);
+}
+
+var status = "";
+function seeIfInstanceIsActive(instanceId){
+
+  var myVar = setInterval(function(){ 
+    makeApiCall(urls["instanceDetails"]+"/"+instanceId , methods["instanceDetails"], null, headers, instanceDetailsResponse);
+    console.log(status);
+    if(status == "ACTIVE" || status == "ERROR"){
+      clearInterval(myVar);
+      var submitBtn = document.getElementById('launch');
+      if(status == "ACTIVE"){
+        submitBtn.innerHTML = "Launched";
+        grabUrlForInstance(instanceId);
+      }
+      else if(status == "ERROR"){
+        submitBtn.innerHTML = "Error! Launch Again";
+        submitBtn.disabled = false;
+      }
+    }  
+  }, 2000);
+}
+
+function instanceDetailsResponse(response, headers){
+  response = JSON.parse(response);
+  status = response["server"]["status"];
+}
+
+function grabUrlForInstance(instanceId){
+
+  var data = {"os-getVNCConsole": {"type": "novnc"}};
+  makeApiCall(urls["getInstanceUrl"]+"/"+instanceId+"/action", methods["getInstanceUrl"], data, headers ,getInstanceUrlResponse);
+
+}
+
+function getInstanceUrlResponse(response, headers){
+
+  response = JSON.parse(response);
+  var resultDiv = document.getElementById('instanceUrl');
+  var url = response["console"]["url"];
+  console.log(url);
+  resultDiv.innerHTML = "Access your instance using <a target=\"_blank\" href=\"" + url + "\">This Link</a>.";
+
+}
+
+function identityAuthenticate(username, password){
+
+  var data = {
+    "auth": {
+        "identity": {
+            "methods": [
+                "password"
+            ],
+            "password": {
+                "user": {
+                    "name": username,
+                    "domain": {
+                        "name": "Default"
+                    },
+                    "password": password
+                }
+            }
         }
-    });
-    })
-  })
+    }
+  }
+
+  makeApiCall(urls["identityAuthentication"], methods["identityAuthentication"], data, {} ,onAuthenticationSuccessBoot);
+
+}
+
+function onAuthenticationSuccessBoot(response, headerAuthToken){
+
+  authToken = headerAuthToken;
+  headers = {
+    "X-Auth-Token" : authToken
+  }
+  bootInstance();
+
+}
+
+function makeApiCall(url, method, data, headers,onSuccessFunction){
+
+  data = JSON.stringify(data);
+  var xhr = new XMLHttpRequest();
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      var response = this.response;
+      var headerAuthToken = xhr.getResponseHeader("X-Subject-Token");
+      onSuccessFunction(response, headerAuthToken);
+    }
+  });
+  xhr.open(method, url);
+  xhr.setRequestHeader("content-type", "application/json");
+  //xhr.setRequestHeader("postman-token", "50c9e25f-a48d-a64e-9f7e-c643a0e77090");
+  //xhr.setRequestHeader("X-Access-Control-Expose-Header", "x-subject-token");
+  for (var key in headers) {
+      if (headers.hasOwnProperty(key)) {
+          xhr.setRequestHeader(key,headers[key]);
+      }
+  }
+  xhr.send(data);
+
 }
