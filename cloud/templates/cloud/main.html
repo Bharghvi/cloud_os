@@ -13,11 +13,9 @@
     <span class="box"><img class="plus" src="{% static 'plus.png' %}" alt="" data-toggle="modal" data-target="#formModal"><div class="more"> Add VM </div></span>
   </div>
 
-    <!-- Modal -->
     <div class="modal fade" id="myModal" role="dialog">
       <div class="modal-dialog">
 
-        <!-- Modal content-->
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -37,14 +35,13 @@
     <div class="modal fade" id="formModal" role="dialog">
       <div class="modal-dialog">
 
-        <!-- Modal content-->
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h4 class="modal-title">VM Specifications</h4>
           </div>
           <div class="modal-body">
-            <form onsubmit="return launchInstance()">
+            <form onsubmit="return logUserIn()">
               <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" value="gogo">
@@ -64,7 +61,6 @@
               <label class="radio-inline"><input id="tiny" type="radio" name="flavor" value="tiny" checked>Tiny (RAM: 512MB, Root-Disk: 1GB, VCPUs: 1)</label>
               <br>
               <label class="radio-inline"><input id="small" type="radio" name="flavor" value="ds2G">ds2G  (RAM: 2GB, Root-Disk: 10GB, VCPUs: 2)</label>
-              <!-- <label class="radio-inline"><input id="large" type="radio" name="flavor" value="large">Large</label> -->
               <br>
               <br>
               <label>OS type</label>

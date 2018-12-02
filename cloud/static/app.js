@@ -1,9 +1,11 @@
+var cloudIp = "http://192.168.43.81/";
+
 var urls = {
 
-  "identityAuthentication" : "http://192.168.43.40/identity/v3/auth/tokens",
-  "bootInstance" : "http://192.168.43.40/compute/v2.1/servers",
-  "instanceDetails" : "http://192.168.43.40/compute/v2.1/servers",//append instance id (/id) or name(?name=)
-  "getInstanceUrl" : "http://192.168.43.40/compute/v2.1/servers",//append instance id (/id) and /action
+  "identityAuthentication" : cloudIp+"identity/v3/auth/tokens",
+  "bootInstance" : cloudIp+"compute/v2.1/servers",
+  "instanceDetails" : cloudIp+"compute/v2.1/servers",//append instance id (/id) or name(?name=)
+  "getInstanceUrl" : cloudIp+"compute/v2.1/servers",//append instance id (/id) and /action
 
 }
 
@@ -45,6 +47,15 @@ var networkId = {
 }
 
 //config ends
+
+//method to log user in
+function logUserIn(){
+  var username = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+  console.log(username,password);
+  identityAuthenticate(username, password);
+  return false;
+}
 
 function launchInstance(){
   var submitBtn = document.getElementById('launch');
@@ -181,7 +192,8 @@ function onAuthenticationSuccessBoot(response, headerAuthToken){
   headers = {
     "X-Auth-Token" : authToken
   }
-  bootInstance();
+  console.log(authToken);
+  //bootInstance();
 
 }
 
