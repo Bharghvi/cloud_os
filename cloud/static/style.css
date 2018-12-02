@@ -1,0 +1,59 @@
+
+footer {
+padding: 1em;
+position:fixed;
+left: 35%;
+bottom:0;
+}
+
+header {
+  background-image: linear-gradient(to bottom right, rgb(96, 132, 217), rgb(142, 191, 219));
+  padding: 30px;
+  text-align: center;
+  font-size: 35px;
+}
+
+img{
+height: 100px;
+width: 100px;
+}
+
+form {
+padding:3em;
+border-width: 1.2px;
+}
+
+button{
+background-color: rgb(50, 112, 219);
+color: white;
+}
+
+h3 {
+padding-left: 2em;
+}
+
+.vms {
+  padding: 4em;
+}
+
+span.box {
+  display: inline-block;
+  /* width: 100px;
+  height: 100px; */
+  padding: 1em;
+  border: 1px solid black;
+  text-align: center;
+  margin-right: 4em;
+}
+
+div.more {
+margin-top: 1em;
+width: 100px;
+}
+
+img.more {
+width: 20px;
+height: 20px;
+float: right;
+/* border-bottom: 1px solid; */
+}

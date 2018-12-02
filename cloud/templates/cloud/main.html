@@ -1,95 +1,9 @@
+{% extends 'cloud/base.html' %}
+{% load static from staticfiles %}
+
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>SVNIT Cloud</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  {% load static %}
-  <script src="{% static 'app.js' %}"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <style media="screen">
-  
-  footer {
-  padding: 1em;
-  position:fixed;
-  left: 35%;
-  bottom:0;
-}
 
-header {
-    background-image: linear-gradient(to bottom right, rgb(96, 132, 217), rgb(142, 191, 219));
-    padding: 30px;
-    text-align: center;
-    font-size: 35px;
-}
-
-img{
-  height: 100px;
-  width: 100px;
-}
-
-form {
-  padding:3em;
-  border-width: 1.2px;
-}
-
-button{
-  background-color: rgb(50, 112, 219);
-  color: white;
-}
-
-h3 {
-  padding-left: 2em;
-}
-
-.vms {
-    padding: 4em;
-}
-
-span.box {
-    display: inline-block;
-    /* width: 100px;
-    height: 100px; */
-    padding: 1em;
-    border: 1px solid black;
-    text-align: center;
-    margin-right: 4em;
-}
-
-div.more {
-  margin-top: 1em;
-  width: 100px;
-}
-
-img.more {
-  width: 20px;
-  height: 20px;
-  float: right;
-  /* border-bottom: 1px solid; */
-}
-
-
-  </style>
-</head>
-<body>
-
-    <header>
-      <section>
-        <div class="" style="display:inline;">
-          <img src="{% static 'logo.png' %}" alt="">
-        </div>
-
-        <div class="" style="display:inline; white-space:nowrap;">
-          SVNIT Cloud Initiative
-        </div>
-      </section>
-
-  </header>
-  <br><br>
+<div class="">
 
   <h3 >Virtual Machines</h3>
 
@@ -171,11 +85,6 @@ img.more {
       </div>
     </div>
 
-    <footer style="">
-  <i class="fa fa-copyright"></i> Copyleft Computer Engineering Department, SVNIT
-</footer>
 
-</body>
-</html>
-
+  </div>
 {% endblock %}
