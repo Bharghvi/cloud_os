@@ -28,7 +28,20 @@
 
   </header>
   <br><br>
-  <div class="wrapper">
+  <div class="container">
+      {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == 'error' %}
+      <div class="alert alert-danger">
+          <strong>Error!</strong> {{message}}
+      </div>
+      {% elif message.tags == 'success' %}
+      <div class="alert alert-success">
+          <strong>Success!</strong> {{message}}
+      </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
     {% block content %}
     {% endblock %}
   </div>

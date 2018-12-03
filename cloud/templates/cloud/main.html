@@ -41,16 +41,8 @@
             <h4 class="modal-title">VM Specifications</h4>
           </div>
           <div class="modal-body">
-            <form onsubmit="return logUserIn()">
-              <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" value="gogo">
-              </div>
-              <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" value="gogo123">
-              </div>
-
+            <form method="POST" action="/createinstance/">
+              {% csrf_token %}
               <div class="form-group">
                 <label for="username">Instance Name:</label>
                 <input type="text" class="form-control" id="instanceName" placeholder="Enter Instance Name" name="instanceName" value="test-webd">

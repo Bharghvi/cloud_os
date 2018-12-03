@@ -1,0 +1,34 @@
+2018/12/02-19:13:11.661 13772 Reusing MANIFEST /home/vatsal/vatsal/cloud_os/testch/Default/Session Storage/MANIFEST-000001
+2018/12/02-20:24:53.124 21288 Level-0 table #5: started
+2018/12/02-20:24:53.245 21288 Level-0 table #5: 19298 bytes OK
+2018/12/02-20:24:53.312 21288 Delete type=0 #3
+2018/12/02-20:31:36.127 21288 Level-0 table #7: started
+2018/12/02-20:31:36.173 21288 Level-0 table #7: 15473 bytes OK
+2018/12/02-20:31:36.273 21288 Delete type=0 #4
+2018/12/02-20:33:27.899 21288 Level-0 table #9: started
+2018/12/02-20:33:27.929 21288 Level-0 table #9: 19668 bytes OK
+2018/12/02-20:33:27.963 21288 Delete type=0 #6
+2018/12/02-20:42:48.453 21288 Level-0 table #11: started
+2018/12/02-20:42:48.493 21288 Level-0 table #11: 20897 bytes OK
+2018/12/02-20:42:48.560 21288 Delete type=0 #8
+2018/12/02-20:51:11.376 21288 Level-0 table #13: started
+2018/12/02-20:51:11.470 21288 Level-0 table #13: 19881 bytes OK
+2018/12/02-20:51:11.538 21288 Delete type=0 #10
+2018/12/02-21:03:59.241 21288 Level-0 table #15: started
+2018/12/02-21:03:59.648 21288 Level-0 table #15: 24538 bytes OK
+2018/12/02-21:04:00.342 21288 Delete type=0 #12
+2018/12/02-21:04:00.342 21288 Compacting 4@0 + 1@1 files
+2018/12/02-21:04:00.551 21288 Generated table #16@0: 165 keys, 78756 bytes
+2018/12/02-21:04:00.551 21288 Compacted 4@0 + 1@1 files => 78756 bytes
+2018/12/02-21:04:00.584 21288 compacted to: files[ 0 1 1 0 0 0 0 ]
+2018/12/02-21:04:00.585 21288 Delete type=2 #13
+2018/12/02-21:04:00.585 21288 Delete type=2 #15
+2018/12/02-21:04:00.585 21288 Delete type=2 #11
+2018/12/02-21:04:00.585 21288 Delete type=2 #9
+2018/12/02-21:04:00.586 21288 Delete type=2 #7
+2018/12/02-21:04:26.528 21288 Level-0 table #18: started
+2018/12/02-21:04:26.747 21288 Level-0 table #18: 15007 bytes OK
+2018/12/02-21:04:26.814 21288 Delete type=0 #14
+2018/12/02-22:00:19.405 21288 Level-0 table #20: started
+2018/12/02-22:00:19.637 21288 Level-0 table #20: 16059 bytes OK
+2018/12/02-22:00:19.771 21288 Delete type=0 #17

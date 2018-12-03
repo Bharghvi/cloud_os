@@ -4,8 +4,9 @@
 <div class="container" style="width:30%">
 
   <h2  align="center">Cloud Enabled Lab</h2>
-  <form onsubmit="return logUserIn()" style="">
+  <form method="POST" action="/login/">
     <div class="form-group">
+      {% csrf_token %}
       <label for="username">Username:</label>
       <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" value="gogo">
     </div>

@@ -2,7 +2,7 @@ var cloudIp = "http://192.168.43.81/";
 
 var urls = {
 
-  "identityAuthentication" : cloudIp+"identity/v3/auth/tokens",
+  "identityAuthentication" : " http://192.168.43.81/identity/v3/auth/tokens",//cloudIp+"identity/v3/auth/tokens",
   "bootInstance" : cloudIp+"compute/v2.1/servers",
   "instanceDetails" : cloudIp+"compute/v2.1/servers",//append instance id (/id) or name(?name=)
   "getInstanceUrl" : cloudIp+"compute/v2.1/servers",//append instance id (/id) and /action
@@ -52,7 +52,6 @@ var networkId = {
 function logUserIn(){
   var username = document.getElementById('username').value;
   var password = document.getElementById('password').value;
-  console.log(username,password);
   identityAuthenticate(username, password);
   return false;
 }
@@ -70,7 +69,6 @@ function launchInstance(){
 
 function bootInstance(){
   var instanceName = document.getElementById('instanceName').value;
-  console.log(instanceName);
   var flavor = document.getElementsByName('flavor');
   for(var i=0;i<flavor.length;i++){
     if(flavor[i].checked){
@@ -123,7 +121,6 @@ function seeIfInstanceIsActive(instanceId){
 
   var myVar = setInterval(function(){ 
     makeApiCall(urls["instanceDetails"]+"/"+instanceId , methods["instanceDetails"], null, headers, instanceDetailsResponse);
-    console.log(status);
     if(status == "ACTIVE" || status == "ERROR"){
       clearInterval(myVar);
       var submitBtn = document.getElementById('launch');
@@ -156,7 +153,6 @@ function getInstanceUrlResponse(response, headers){
   response = JSON.parse(response);
   var resultDiv = document.getElementById('instanceUrl');
   var url = response["console"]["url"];
-  console.log(url);
   resultDiv.innerHTML = "Access your instance using <a target=\"_blank\" href=\"" + url + "\">This Link</a>.";
 
 }
@@ -192,7 +188,6 @@ function onAuthenticationSuccessBoot(response, headerAuthToken){
   headers = {
     "X-Auth-Token" : authToken
   }
-  console.log(authToken);
   //bootInstance();
 
 }
@@ -204,13 +199,19 @@ function makeApiCall(url, method, data, headers,onSuccessFunction){
 
   xhr.addEventListener("readystatechange", function () {
     if (this.readyState === 4) {
-      var response = this.response;
-      var headerAuthToken = xhr.getResponseHeader("X-Subject-Token");
-      onSuccessFunction(response, headerAuthToken);
+      if (this.status == 200){
+        var response = this.response;
+        var headerAuthToken = xhr.getResponseHeader("X-Subject-Token");
+        onSuccessFunction(response, headerAuthToken);
+      }
+      else if (this.status == 401){
+        raiseUnauthorized();
+      }
     }
   });
   xhr.open(method, url);
   xhr.setRequestHeader("content-type", "application/json");
+  xhr.withCredentials = false;
   //xhr.setRequestHeader("postman-token", "50c9e25f-a48d-a64e-9f7e-c643a0e77090");
   //xhr.setRequestHeader("X-Access-Control-Expose-Header", "x-subject-token");
   for (var key in headers) {
@@ -220,4 +221,16 @@ function makeApiCall(url, method, data, headers,onSuccessFunction){
   }
   xhr.send(data);
 
+}
+//success and fail for login
+function onSuccessLogin(){
+  var username = document.getElementById('username').value;
+  document.cookie="username="+username+"; token="+authToken;
+
+}
+
+function invalidLogin(){
+  var alertFlash = document.getElementsByClassName('alertFlash')[0];
+  alertFlash.style.display = "block";
+  alertFlash.getElementsByTagName('span')[0].innerHTML = "Invalid Credentials!";
 }
