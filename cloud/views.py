@@ -6,12 +6,13 @@ from .models import Instance
 import requests, json
 from ast import literal_eval
 
-cloudAddress = "http://192.168.43.81/";
+cloudAddress = "http://192.168.43.40/";
 
 apiEndpoints = {
 	"identityAuthentication":cloudAddress+ "identity/v3/auth/tokens",
 	"bootInstance": cloudAddress+"compute/v2.1/servers",
-	"instanceDetails" : cloudAddress+"compute/v2.1/servers"
+	"instanceDetails" : cloudAddress+"compute/v2.1/servers",
+	"linkToInstance" : cloudAddress +"compute/v2.1/servers"#add /{vm-id}/remote-consoles
 }
 
 apiMethods = {
@@ -19,7 +20,7 @@ apiMethods = {
   "identityAuthentication" : "POST",
   "bootInstance" : "POST",
   "instanceDetails" : "GET",
-  "getInstanceUrl" : "POST"
+  "linkToInstance" : "POST"
 
 }
 
@@ -34,15 +35,30 @@ flavourId = {
 
 }
 
-imageId = {
-
-  "cirros" : "a8f5e7a3-aded-420c-9a24-58439c1360e6",
-  "ubuntu" : "d167b6c2-6ec6-438c-8c82-ab9ec288def3",
-  "lubuntu" : "a80a1321-ccfb-4853-ae9f-cc03593e13c5"
+flavorSpec = {
+	
+	"1" : {
+		"ram": "512MB",
+		"cpus": "1",
+		"disk": "1GB"
+	},
+	"d3": {
+		"ram": "2GB",
+		"cpus": "2",
+		"disk": "10GB"
+	},
 
 }
 
-networkId = "7a0b2616-a9be-4210-a896-a7b3fd180ea1"#"9b36eb7d-2cad-4fe1-9d77-8115553a9720"
+imageId = {
+
+  "cirros" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd",
+  "ubuntu" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd",
+  "lubuntu" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd"
+
+}
+
+networkId = "ae887306-3c5c-4fac-9fbb-3117683652d8"#"9b36eb7d-2cad-4fe1-9d77-8115553a9720"
 
 
 
@@ -52,18 +68,36 @@ def main(request):
 		instances = Instance.objects.filter(username=request.session["userLogged"])
 		headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
 		allvms = []
+		data = {"os-getVNCConsole": {"type": "novnc"}}; 
+		if instances == None:
+			return render(request, "cloud/main.html")
 		for instance in instances:
 			response =  restapi(apiEndpoints["instanceDetails"]+"/"+instance.instanceId, apiMethods["instanceDetails"], {}, headerToSend)
-			response =  response.content
-			response = json.loads(response)
-			allvms.append({"name": response["server"]["name"], "id": instance.instanceId})
-		data = {"allvms": allvms}
+			responseLink = restapi(apiEndpoints["linkToInstance"]+"/"+instance.instanceId +"/action", apiMethods["linkToInstance"], data, headerToSend)
+			if response.status_code == 401 or responseLink.status_code==401:
+  				del request.session["userLogged"]
+  				del request.session["userToken"]
+  				return redirect('/')
+  			elif response.status_code == 500 or response.status_code == 404 or responseLink.status_code==500 or responseLink.status_code==404:
+  				messages.error(request,"Some error occured!")
+  				return render(request, "cloud/main.html")
+			response =  response.json()
+			responseLink = responseLink.json()
+			flavorId = response["server"]["flavor"]["id"]
+			print(response["server"]["status"], type(response["server"]["status"]))
+			# if response["server"]["status"].encode("utf8") == "ACTVE":
+			url = responseLink["console"]["url"]
+				# print('sd')
+			# else:
+				# url = None;
+			allvms.append({"id": instance.id, "name": response["server"]["name"], "uuid": instance.instanceId, "ram": flavorSpec[flavorId]["ram"], "disk": flavorSpec[flavorId]["disk"], "cpus": flavorSpec[flavorId]["cpus"],"vm_state": response["server"]["OS-EXT-STS:vm_state"] ,"status": response["server"]["status"], "task_state": response["server"]["OS-EXT-STS:task_state"], "url": url})
+
+		data = {"allvms": allvms, "flavorSpec": flavorSpec}
+
 		return render(request, "cloud/main.html", data)
 			#return HttpResponse(response["server"]["name"])
 	else:
 		return redirect('/')
-
-def checkApiStatus(responseObject):
 	 
     
 
@@ -85,6 +119,21 @@ def login(request):
 	else:
 		return HttpResponse(status=404)
 
+def details(request):
+	# data = {
+	#     "remote_console": {
+	#         "protocol": "vnc",
+	#         "type": "novnc"
+	#     }
+	# }
+	
+	instance = Instance.objects.get(instanceId='9383832a-22a8-486a-bc8e-d89afbfce889')
+	print(apiEndpoints["linkToInstance"]+"/"+instance.instanceId+"/"+"action/", apiMethods["linkToInstance"])
+	headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
+	response =  restapi(apiEndpoints["linkToInstance"]+"/"+instance.instanceId+"/"+"action", apiMethods["linkToInstance"], data, headerToSend)
+	return HttpResponse(response.content)
+
+
 def home(request):
 	if 'userLogged' not in request.session:
 		return render(request, 'cloud/home.html', )
@@ -104,7 +153,7 @@ def createInstance(request):
 	    	"server" : {
 	        "name" : instanceName,
 	        "imageRef" : imageId[image],
-	        "key_name" : "test",#hardcoded
+	        "key_name" : "svnit-test-key",#hardcoded
 	        "flavorRef" : flavourId[flavor],
 	        "networks" : [{
 	            "uuid" : networkId
@@ -123,16 +172,20 @@ def createInstance(request):
   		};
   		apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
   		response =  restapi(apiEndpoints["bootInstance"], apiMethods["bootInstance"], data, apiHeaders)
+  		print(response.status_code)
   		if response.status_code == 202:
   			response = response.json()
   			instanceId = response["server"]["id"]
   			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId)
   			newInstance.save()
   			return redirect('/main/')
-		#
-		#newInstance.save()  		
-		# messages.success("Successfully created instance. Let's hope it gets boot up:(") 
-  		return HttpResponse(response.status_code)
+  		elif response.status_code == 401:
+  			del request.session["userLogged"]
+  			del request.session["userToken"]
+  			return redirect('/')
+  		else:
+  			messages.error(request, "Some error occured!")
+			return redirect('/main/')
 	else:
 		return HttpResponse(status=404)
 
@@ -140,6 +193,7 @@ def createInstance(request):
 def restapi(url, method, data, headers):
 	if method=="POST":
 		response = requests.post(url, data=json.dumps(data), headers=apiHeaders)
+		return response
 	elif method=="GET":
 		response = requests.get(url, headers=apiHeaders)
 		return response
