@@ -7,9 +7,12 @@
 
   <h3 >Virtual Machines</h3>
 
+
+
   <div class="vms">
-    <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="more">title</span> <span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#myModal"> </span> </div></span>
-    <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more"> <span class="more">title</span> <span><img  onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#myModal"> </span></div></span>
+    {% for vm in allvms %}
+    <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="more">{{vm.name}}</span> <span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#myModal"> </span> </div></span>
+    {% endfor %}
     <span class="box"><img class="plus" src="{% static 'plus.png' %}" alt="" data-toggle="modal" data-target="#formModal"><div class="more"> Add VM </div></span>
   </div>
 

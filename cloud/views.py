@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from .models import Instance
 import requests, json
+from ast import literal_eval
 
 cloudAddress = "http://192.168.43.81/";
 
@@ -43,16 +44,6 @@ imageId = {
 
 networkId = "7a0b2616-a9be-4210-a896-a7b3fd180ea1"#"9b36eb7d-2cad-4fe1-9d77-8115553a9720"
 
-def convert(data):
-    if isinstance(data, basestring):
-        return str(data)
-    elif isinstance(data, collections.Mapping):
-        return dict(map(convert, data.iteritems()))
-    elif isinstance(data, collections.Iterable):
-        return type(data)(map(convert, data))
-    else:
-        return data
-
 
 
 def main(request):
@@ -62,18 +53,18 @@ def main(request):
 		headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
 		allvms = []
 		for instance in instances:
-			response =  restapi(apiEndpoints["instanceDetails"], apiMethods["instanceDetails"], {}, headerToSend)
-			#response = response.json()
-			response=response.text.encode()
-			# vm["name"]=response["server"]["name"]
-			# allvms.append(vm)
+			response =  restapi(apiEndpoints["instanceDetails"]+"/"+instance.instanceId, apiMethods["instanceDetails"], {}, headerToSend)
+			response =  response.content
 			response = json.loads(response)
-			vm["name"]=response["server"]["name"]
-			allvms.append(vm)
-		print(response)
-		return HttpResponse(instances)
+			allvms.append({"name": response["server"]["name"], "id": instance.instanceId})
+		data = {"allvms": allvms}
+		return render(request, "cloud/main.html", data)
+			#return HttpResponse(response["server"]["name"])
 	else:
 		return redirect('/')
+
+def checkApiStatus(responseObject):
+	 
     
 
 def login(request):
@@ -97,8 +88,9 @@ def login(request):
 def home(request):
 	if 'userLogged' not in request.session:
 		return render(request, 'cloud/home.html', )
-	else: 
-		return HttpResponse(request.session["userToken"])
+	else:
+		return redirect('/main/')
+		#return HttpResponse(request.session["userToken"])
 
 def createInstance(request):
 	if request.method=="POST":
@@ -131,7 +123,16 @@ def createInstance(request):
   		};
   		apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
   		response =  restapi(apiEndpoints["bootInstance"], apiMethods["bootInstance"], data, apiHeaders)
-  		return HttpResponse(response)
+  		if response.status_code == 202:
+  			response = response.json()
+  			instanceId = response["server"]["id"]
+  			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId)
+  			newInstance.save()
+  			return redirect('/main/')
+		#
+		#newInstance.save()  		
+		# messages.success("Successfully created instance. Let's hope it gets boot up:(") 
+  		return HttpResponse(response.status_code)
 	else:
 		return HttpResponse(status=404)
 
@@ -139,7 +140,6 @@ def createInstance(request):
 def restapi(url, method, data, headers):
 	if method=="POST":
 		response = requests.post(url, data=json.dumps(data), headers=apiHeaders)
-		return response
 	elif method=="GET":
 		response = requests.get(url, headers=apiHeaders)
 		return response
