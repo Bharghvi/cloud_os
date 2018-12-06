@@ -6,7 +6,7 @@ from .models import Instance
 import requests, json
 from ast import literal_eval
 
-cloudAddress = "http://192.168.43.40/";
+cloudAddress = "http://192.168.42.177/";
 
 apiEndpoints = {
 	"identityAuthentication":cloudAddress+ "identity/v3/auth/tokens",
@@ -52,13 +52,13 @@ flavorSpec = {
 
 imageId = {
 
-  "cirros" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd",
+  "cirros" : "eaf0041e-e63c-4261-9ebb-caa2b6f42706",
   "ubuntu" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd",
   "lubuntu" : "fc580b93-92c9-4c56-b0f3-a9a9ba4470fd"
 
 }
 
-networkId = "ae887306-3c5c-4fac-9fbb-3117683652d8"#"9b36eb7d-2cad-4fe1-9d77-8115553a9720"
+networkId = "56c0dbca-4443-4038-95ef-0df570257028"#"9b36eb7d-2cad-4fe1-9d77-8115553a9720"
 
 
 
@@ -82,14 +82,14 @@ def main(request):
   				messages.error(request,"Some error occured!")
   				return render(request, "cloud/main.html")
 			response =  response.json()
-			responseLink = responseLink.json()
+			if responseLink.status_code!=409:
+				responseLink = responseLink.json()
+				url = responseLink["console"]["url"]
+			else:
+				url = "#"
 			flavorId = response["server"]["flavor"]["id"]
 			print(response["server"]["status"], type(response["server"]["status"]))
 			# if response["server"]["status"].encode("utf8") == "ACTVE":
-			url = responseLink["console"]["url"]
-				# print('sd')
-			# else:
-				# url = None;
 			allvms.append({"id": instance.id, "name": response["server"]["name"], "uuid": instance.instanceId, "ram": flavorSpec[flavorId]["ram"], "disk": flavorSpec[flavorId]["disk"], "cpus": flavorSpec[flavorId]["cpus"],"vm_state": response["server"]["OS-EXT-STS:vm_state"] ,"status": response["server"]["status"], "task_state": response["server"]["OS-EXT-STS:task_state"], "url": url})
 
 		data = {"allvms": allvms, "flavorSpec": flavorSpec}
@@ -153,7 +153,7 @@ def createInstance(request):
 	    	"server" : {
 	        "name" : instanceName,
 	        "imageRef" : imageId[image],
-	        "key_name" : "svnit-test-key",#hardcoded
+	        "key_name" : "test",#hardcoded
 	        "flavorRef" : flavourId[flavor],
 	        "networks" : [{
 	            "uuid" : networkId
