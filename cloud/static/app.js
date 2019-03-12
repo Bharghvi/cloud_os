@@ -48,6 +48,22 @@ var networkId = {
 
 //config ends
 
+//active the selected link
+
+// windows.onload
+function activate() {
+  var loc = window.location.pathname;
+  var navlinks = document.getElementsByName("navl");
+  // console.log(navlinks);
+  if(loc == '/launchinstance/')
+    navlinks[0].className = "active";
+  else if (loc == '/deployapp/')
+    navlinks[1].className = "active";
+  else {
+    navlinks[2].className = "active";
+  }
+}
+
 //method to log user in
 function logUserIn(){
   var username = document.getElementById('username').value;
@@ -62,7 +78,7 @@ function launchInstance(){
   submitBtn.disabled = true;
   var username = document.getElementById('username').value;
   var password = document.getElementById('password').value;
-  
+
   identityAuthenticate(username, password);
   return false;
 }
@@ -119,7 +135,7 @@ function onBootSuccess(response, headers){
 var status = "";
 function seeIfInstanceIsActive(instanceId){
 
-  var myVar = setInterval(function(){ 
+  var myVar = setInterval(function(){
     makeApiCall(urls["instanceDetails"]+"/"+instanceId , methods["instanceDetails"], null, headers, instanceDetailsResponse);
     if(status == "ACTIVE" || status == "ERROR"){
       clearInterval(myVar);
@@ -132,7 +148,7 @@ function seeIfInstanceIsActive(instanceId){
         submitBtn.innerHTML = "Error! Launch Again";
         submitBtn.disabled = false;
       }
-    }  
+    }
   }, 2000);
 }
 

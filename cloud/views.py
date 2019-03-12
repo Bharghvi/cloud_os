@@ -36,7 +36,7 @@ flavourId = {
 }
 
 flavorSpec = {
-	
+
 	"1" : {
 		"ram": "512MB",
 		"cpus": "1",
@@ -68,7 +68,7 @@ def main(request):
 		instances = Instance.objects.filter(username=request.session["userLogged"])
 		headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
 		allvms = []
-		data = {"os-getVNCConsole": {"type": "novnc"}}; 
+		data = {"os-getVNCConsole": {"type": "novnc"}};
 		if instances == None:
 			return render(request, "cloud/main.html")
 		for instance in instances:
@@ -98,8 +98,8 @@ def main(request):
 			#return HttpResponse(response["server"]["name"])
 	else:
 		return redirect('/')
-	 
-    
+
+
 
 def login(request):
 	if request.method == "POST":
@@ -115,7 +115,7 @@ def login(request):
 			messages.error(request, "Invalid Credentials!")
 			return render(request, 'cloud/home.html', )
 		# return HttpResponse(response.status_code)
-		
+
 	else:
 		return HttpResponse(status=404)
 
@@ -126,7 +126,7 @@ def details(request):
 	#         "type": "novnc"
 	#     }
 	# }
-	
+
 	instance = Instance.objects.get(instanceId='9383832a-22a8-486a-bc8e-d89afbfce889')
 	print(apiEndpoints["linkToInstance"]+"/"+instance.instanceId+"/"+"action/", apiMethods["linkToInstance"])
 	headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
@@ -189,7 +189,7 @@ def createInstance(request):
 	else:
 		return HttpResponse(status=404)
 
-	
+
 def restapi(url, method, data, headers):
 	if method=="POST":
 		response = requests.post(url, data=json.dumps(data), headers=apiHeaders)
@@ -197,3 +197,16 @@ def restapi(url, method, data, headers):
 	elif method=="GET":
 		response = requests.get(url, headers=apiHeaders)
 		return response
+
+def swtemplate(request):
+	if 'userLogged' not in request.session:
+		return render(request, 'cloud/swtemplate.html', )
+	else:
+		return redirect('/swtemplate/')
+		#return HttpResponse(request.session["userToken"])
+
+def deployapp(request):
+	if 'userLogged' not in request.session:
+		return render(request, 'cloud/deployapp.html', )
+	else:
+		return redirect('/deployapp/')
