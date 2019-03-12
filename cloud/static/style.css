@@ -1,9 +1,10 @@
 
 footer {
-padding: 1em;
-position:fixed;
-left: 35%;
-bottom:0;
+  background-color: #efefef;
+  flex: 0 0 3.5em;/*or just height:50px;*/
+  margin-top: auto;
+  text-align: center;
+  padding-top: 1em;
 }
 
 header {
@@ -11,6 +12,14 @@ header {
   padding: 30px;
   text-align: center;
   font-size: 35px;
+  overflow: hidden;
+  /* position: absolute; */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 img{
@@ -30,6 +39,11 @@ color: white;
 
 h3 {
 padding-left: 2em;
+}
+
+.instanceC{
+  overflow: auto;
+  position: absolute;
 }
 
 .vms {
@@ -72,10 +86,20 @@ img.plus{
   float: left;
   color: #f2f2f2;
   text-align: center;
-  padding: 0.7em 12.3em;
+  padding: 0.7em;
   text-decoration: none !important;
   border-left: 1px solid white;
   font-size: 1.1em;
+   width: 33.33%;
+}
+
+@media screen and (max-width: 500px) {
+  .topnav a {
+    float: none;
+    display: block;
+    width: 100%;
+    text-align: left; /* If you want the text to be left-aligned on small screens */
+  }
 }
 
 .topnav a:hover {
