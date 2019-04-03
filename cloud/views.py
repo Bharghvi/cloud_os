@@ -6,7 +6,7 @@ from .models import Instance
 import requests, json
 from ast import literal_eval
 
-cloudAddress = "http://192.168.42.177/";
+cloudAddress = "http://172.21.1.176/";
 
 apiEndpoints = {
 	"identityAuthentication":cloudAddress+ "identity/v3/auth/tokens",
@@ -75,12 +75,12 @@ def main(request):
 			response =  restapi(apiEndpoints["instanceDetails"]+"/"+instance.instanceId, apiMethods["instanceDetails"], {}, headerToSend)
 			responseLink = restapi(apiEndpoints["linkToInstance"]+"/"+instance.instanceId +"/action", apiMethods["linkToInstance"], data, headerToSend)
 			if response.status_code == 401 or responseLink.status_code==401:
-  				del request.session["userLogged"]
-  				del request.session["userToken"]
-  				return redirect('/')
-  			elif response.status_code == 500 or response.status_code == 404 or responseLink.status_code==500 or responseLink.status_code==404:
-  				messages.error(request,"Some error occured!")
-  				return render(request, "cloud/main.html")
+				del request.session["userLogged"]
+				del request.session["userToken"]
+				return redirect('/')
+			elif response.status_code == 500 or response.status_code == 404 or responseLink.status_code==500 or responseLink.status_code==404:
+				messages.error(request,"Some error occured!")
+				return render(request, "cloud/main.html")
 			response =  response.json()
 			if responseLink.status_code!=409:
 				responseLink = responseLink.json()
@@ -169,22 +169,22 @@ def createInstance(request):
 	            }
 	        ]
 	    	}
-  		};
-  		apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
-  		response =  restapi(apiEndpoints["bootInstance"], apiMethods["bootInstance"], data, apiHeaders)
-  		print(response.status_code)
-  		if response.status_code == 202:
-  			response = response.json()
-  			instanceId = response["server"]["id"]
-  			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId)
-  			newInstance.save()
-  			return redirect('/main/')
-  		elif response.status_code == 401:
-  			del request.session["userLogged"]
-  			del request.session["userToken"]
-  			return redirect('/')
-  		else:
-  			messages.error(request, "Some error occured!")
+		};
+		apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
+		response =  restapi(apiEndpoints["bootInstance"], apiMethods["bootInstance"], data, apiHeaders)
+		print(response.status_code)
+		if response.status_code == 202:
+			response = response.json()
+			instanceId = response["server"]["id"]
+			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId)
+			newInstance.save()
+			return redirect('/main/')
+		elif response.status_code == 401:
+			del request.session["userLogged"]
+			del request.session["userToken"]
+			return redirect('/')
+		else:
+			messages.error(request, "Some error occured!")
 			return redirect('/main/')
 	else:
 		return HttpResponse(status=404)
