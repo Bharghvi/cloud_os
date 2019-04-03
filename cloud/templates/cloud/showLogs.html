@@ -1,0 +1,9 @@
+{% extends 'cloud/base.html' %}
+{% load static %}
+{% block content %}
+<pre id="logHere">Your logs will be displayed here</pre>
+<script type="text/javascript">
+	streamLogs('{{instanceId}}');
+</script>
+
+{% endblock %}

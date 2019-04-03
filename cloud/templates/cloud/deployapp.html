@@ -3,41 +3,97 @@
 {% block content %}
 
 <div class="container" style="width:80%; overflow:auto;">
+<h2  align="center">Deploy Your App!</h2>
 
-  <h2  align="center">Deploy Your App!</h2>
+{% for app in allapps %}
+<span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="more">{{app.appName}}</span> <span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#app{{app.id}}"> </span> </div></span>
+{% endfor %}
+<span class="box"><img class="plus" src="{% static 'plus.png' %}" alt="" data-toggle="modal" data-target="#formModal"><div class="more"> Add VM </div></span>
 
-  <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="swname">App1</span> </div></span>
-  <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="swname">App2</span> </div></span>
-  <span class="box"><img class="plus" src="{% static 'plus.png' %}" alt="" data-toggle="modal" data-target="#formModal"><div class="more"> Add VM </div></span>
-      <div class="modal fade" id="formModal" role="dialog">
-        <div class="modal-dialog">
+<!-- details modal -->
+{% for app in allapps %}
+	<div class="modal fade" id="app{{app.id}}" role="dialog">
+	<div class="modal-dialog">
 
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h4 class="modal-title">VM Specifications</h4>
-            </div>
-            <div class="modal-body">
-              <form method="POST" action="/login/">
-                <div class="form-group">
-                  {% csrf_token %}
-                  <label for="link">Link to you Code(github):</label>
-                  <input type="text" class="form-control" id="link" placeholder="Enter Link" name="link" value="">
-                </div>
-                <div class="form-group">
-                  <label for="runc">Enter Run Command:</label>
-                  <input type="text" class="form-control" id="runc" placeholder="Enter Run Command" name="runc" value="">
-                </div>
-                <br>
-                <button type="submit" class="btn btn-submit" id="deploy">Submit</button>
-                  </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-          </div>
+	  <div class="modal-content">
+		 <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Details of {{app.appName}} app</h4>
+		 </div>
+		 <div class="modal-body">
+			<ul>
+			  <li>App Name: {{app.appName}}</li>
+			  <li>Github Url: {{app.gitLink}}</li>
+			  <li>Branch: {{app.branch}}</li>
+			  <li>Run Command: {{app.runCmd}}</li>
+			  <li>VM Task State: {{app.task_state}}</li>
+              <li>VM State: {{app.vm_state}}</li>
+              <li>VM Status: {{app.status}}</li>
+              {% if app.url %}
+              <li>Link To Console: <a href="{{app.url}}" target="_blank">{{app.url}}</a> </li>
+              {% endif %}
+              {% if app.vm_state == 'active' and app.appLink == ''  %}
+			  		<form method="POST" action="/createAndAssociatefp/" style="margin: 0; padding: 10px">
+			  			{% csrf_token %}
+			  			<input type="submit" class="btn btn-primary" name="assoc" value="Associate Floating IP">
+			  			<input type="hidden" name="appId" value="{{app.id}}">
+			  		</form>
+			  {% else %}
+			  		<li>App Link: <a href="{{app.appLink}}" target="_blank">{{app.appLink}}</a> </li>
+			  {% endif %}
+			</ul>
+		 </div>
+		 <div class="modal-footer">
+		 	{% if app.vm_state == 'active' %}
+		 	<a class="btn btn-info" href="/ilogs/{{app.instanceId}}" target="_blank" >Logs</a>
+		 	{% endif %}
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		 </div>
+	  </div>
 
-        </div>
-      </div>
+	</div>
+ </div>
+ {% endfor %}
+
+<!-- main form to take ip -->
+	<div class="modal fade" id="formModal" role="dialog">
+	  <div class="modal-dialog">
+
+		 <div class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal">&times;</button>
+			  <h4 class="modal-title">Deploy App</h4>
+			</div>
+			<div class="modal-body">
+			  <form method="POST" action="/buildAndDeploy/">
+				 {% csrf_token %}
+				 <div class="form-group">
+					<label for="link">AppName:</label>
+					<input type="text" class="form-control" id="appName" placeholder="Enter App Name" name="appName" value="">
+				 </div>
+				 <div class="form-group">
+					<label for="link">Link to you Code(github):</label>
+					<input type="text" class="form-control" id="link" placeholder="Enter Link" name="link" value="">
+				 </div>
+				 <div class="form-group">
+					<label for="link">Branch:</label>
+					<input type="text" class="form-control" id="branch" placeholder="Enter Branch Name" name="branch" value="">
+				 </div>
+				 <div class="form-group">
+					<label for="runc">Enter Run Command:</label>
+					<input type="text" class="form-control" id="runc" placeholder="Enter Run Command" name="runc" value="">
+				 </div>
+				 <br>
+				 <button type="submit" class="btn btn-default" id="deploy">Deploy</button>
+					</form>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		 </div>
+
+	  </div>
+	</div>
+
 </div>
 {% endblock %}
