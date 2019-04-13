@@ -6,6 +6,7 @@ from django.db import models
 class Instance(models.Model):
 	username = models.CharField(max_length=100)
 	instanceId = models.CharField(max_length=100)
+	instanceName = models.CharField(max_length=100)
 	floatingIp = models.CharField(max_length=100)
 
 	def __str__(self):
@@ -44,6 +45,7 @@ class InstalledSoftware(models.Model):
 	username = models.CharField(max_length=100)
 	software = models.ForeignKey(Software, on_delete=models.CASCADE, related_name="software")
 	status = models.IntegerField()
+	instance = models.ForeignKey(Instance, on_delete=models.CASCADE, related_name="instance")
 	# 0 installed
 	# 99 installing
 	# else error

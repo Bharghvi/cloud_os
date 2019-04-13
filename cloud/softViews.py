@@ -1,19 +1,39 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-from .models import Software, SoftDependency, InstalledSoftware
+from .models import Software, SoftDependency, InstalledSoftware, Instance
 import requests, json, os, threading, paramiko
 from django.conf import settings
+from .conf import *
+from .views import restapi
 
 def swtemplate(request):
 	if 'userLogged' in request.session:
 		# file = open(os.path.join(settings.BASE_DIR, 'softScripts/myscript.sh'), encoding = 'utf-8')
 		# return HttpResponse(file.read())
+		username=request.session["userLogged"]
+		instances = Instance.objects.filter(username=username)
 		softwares = Software.objects.all()
-		for software in softwares:
-			dependencies = SoftDependency.objects.filter(depender=software).order_by("order")
-			software.dependencies = dependencies
-		data = {"softwares": softwares}
+		allInstalledSoftwares={}
+		allNotInstalledSoftwares={}
+		for instance in instances:
+			installedSoftwares = InstalledSoftware.objects.filter(username=username, instance=instance)
+			softwaresYetToInstall=[]
+			softwareAlreadyInstalled=[]
+			for installedSoftware in installedSoftwares:
+				softwareAlreadyInstalled.append(installedSoftware.software)
+			for software in softwares:
+				if software in softwareAlreadyInstalled:
+					continue
+				dependencies = SoftDependency.objects.filter(depender=software).order_by("order")
+				software.dependencies = dependencies
+				softwaresYetToInstall.append(software)
+			allInstalledSoftwares[instance.id]=softwareAlreadyInstalled
+			allNotInstalledSoftwares[instance.id]=softwaresYetToInstall
+
+		print(allInstalledSoftwares, allNotInstalledSoftwares)
+		data = {"softwares": softwares, "allInstalledSoftwares": allInstalledSoftwares, "allNotInstalledSoftwares": allNotInstalledSoftwares}
+		# return HttpResponse({"1":allInstalledSoftwares, "2":allNotInstalledSoftwares})
 		return render(request, 'cloud/swtemplate.html', data)
 	else:
 
@@ -29,34 +49,79 @@ def swtemplatemy(request):
 	else:
 		return redirect('/swtemplate/myapp/')
 
-def installSoft(request, softId):
+def createAndAssocFloatIp(request, instance):
+	instanceId = instance.instanceId
+	data = {"floatingip": {"floating_network_id": networkId["public"]}}
+	headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
+	response = restapi(apiEndpoints["createFloatingIp"], apiMethods["createFloatingIp"], data, headerToSend)
+	if response.status_code!=201:
+		return 1
+	response = response.json()
+	floatingip = response["floatingip"]["floating_ip_address"]
+	floatingipId = response["floatingip"]["id"]
+	response = restapi(apiEndpoints["findPortofDevice"]+instanceId, apiMethods["findPortofDevice"], "", headerToSend)
+	if response.status_code!=200:
+		return 2
+	response = response.json()
+	portid = response["ports"][0]["id"]
+
+	data = {"floatingip": {"port_id": portid}}
+	response = restapi(apiEndpoints["associateFloatingIp"]+"/"+floatingipId, apiMethods["associateFloatingIp"], data, headerToSend)
+	if response.status_code!=200:
+		return 3
+	instance.floatingIp=floatingip
+	instance.save()
+	return 0
+
+def installSoft(request, softId, instanceId):
 	if request.method=="POST":
 		if "userLogged" not in request.session:
 			redirect('/')
+		instance = Instance.objects.get(id=instanceId)
+		resp = checkFloatingIp(instance)
+		if resp == False:
+			resp = createAndAssocFloatIp(request, instance)
+			if resp==1:
+				messages.error("Failed to create floating ip")
+				return redirect("/swtemplate/newapp/")
+			elif resp==2 or resp==3:
+				messages.error("Failed to associate floating ip")
+				return redirect("/swtemplate/newapp/")
+		floatingIp = instance.floatingIp
 		software = Software.objects.get(id=softId)
 		dependencies = SoftDependency.objects.filter(depender=software).order_by("order")
 		toinstall=[]
 		for dependency in dependencies:
-			toinstall.append(dependency.dependency)
-		toinstall.append(software)
-		for software in toinstall:
-			installedSoftware = InstalledSoftware(username=request.session["userLogged"], software=software, status=99)
+			installedSoftware = InstalledSoftware(username=request.session["userLogged"], software=dependency.dependency, status=99, instance=instance)
 			installedSoftware.save()
-		t1 = threading.Thread(target=startInstallation, args=(toinstall)) 
+			toinstall.append(installedSoftware)
+		installedSoftware = InstalledSoftware(username=request.session["userLogged"], software=software, status=99, instance=instance)
+		installedSoftware.save()
+		toinstall.append(installedSoftware)
+		# for software in toinstall:
+		# 	installedSoftware = InstalledSoftware(username=request.session["userLogged"], software=software, status=99, instance=instance)
+		# 	installedSoftware.save()
+		t1 = threading.Thread(target=startInstallation, args=(instance, toinstall)) 
 		t1.start()
 
 		return redirect("/swtemplate/myapp/")
 	else:
 		return HttpResponse(status=500)
 
-def startInstallation(*toinstall):
+def checkFloatingIp(instance):
+	if instance.floatingIp == "" :
+		return False
+	return True
+
+def startInstallation(instance, *toinstall):
+	toinstall=toinstall[0]
 	client = paramiko.SSHClient()
 	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	client.connect('172.21.0.8', username='ubuntu', key_filename='cloudKeys/gogokey.pem')
-	for software in toinstall:
-		installedSoftware = InstalledSoftware.objects.get(software=software)
-		exit_code, stdout, stderr = execCmd(client, software.scriptName)
-		print(software.name, exit_code)
+	client.connect(instance.floatingIp, username='ubuntu', key_filename='cloudKeys/'+keyName+'.pem')
+	for installedSoftware in toinstall:
+		# installedSoftware = InstalledSoftware.objects.get(software=software)
+		exit_code, stdout, stderr = execCmd(client, installedSoftware.software.scriptName)
+		print(installedSoftware.software.name, exit_code)
 		if exit_code == 0:
 			installedSoftware.status=0
 		else:

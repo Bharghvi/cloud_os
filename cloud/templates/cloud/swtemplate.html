@@ -46,7 +46,7 @@
         </ul>
       </div>
       <div class="modal-footer">
-      	<form action="/installsoft/{{software.id}}/" class="simpForm" method="POST">
+      	<form action="/installsoft/{{software.id}}/50/" class="simpForm" method="POST">
       		{% csrf_token %}
       		<input type="submit" class="btn btn-primary" name="installsoft" value="Install">
       	</form>

@@ -10,7 +10,10 @@ function activate() {
     navlinks[0].className = "active";
   else if (loc == '/deployapp/')
     navlinks[1].className = "active";
-  else if (loc == '/swtemplate/'){
+  else if (loc == '/swtemplate/myapp/'){
+    navlinks[2].className = "active";
+  }
+  else if (loc == '/swtemplate/newapp/'){
     navlinks[2].className = "active";
   }
 }

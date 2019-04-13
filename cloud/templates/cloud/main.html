@@ -37,13 +37,13 @@
               <li>Link To Console: <a href="{{vm.url}}" target="_blank">{{vm.url}}</a> </li>
               {% endif %}
               {% if vm.vm_state == 'active' and vm.floatingIp == ''  %}
-                <form method="POST" action="/createAndAssociatefp/" style="margin: 0; padding: 10px">
+                <form method="POST" action="/createAndAssociatefpIns/" style="margin: 0; padding: 10px">
                   {% csrf_token %}
                   <input type="submit" class="btn btn-primary" name="assoc" value="Associate Floating IP">
-                  <input type="hidden" name="appId" value="{{vm.id}}">
+                  <input type="hidden" name="vmId" value="{{vm.id}}">
                 </form>
               {% else %}
-                  <li>App Link: {{vm.floatingIp}}</li>
+                  <li>Floating Ip: {{vm.floatingIp}}</li>
               {% endif %}
             </ul>
           </div>

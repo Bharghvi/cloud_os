@@ -161,7 +161,7 @@ def launchInstance(request):
 		if response.status_code == 202:
 			response = response.json()
 			instanceId = response["server"]["id"]
-			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId)
+			newInstance = Instance(username=request.session["userLogged"], instanceId=instanceId, instanceName=instanceName)
 			newInstance.save()
 			return redirect('/deployinstance/')
 		elif response.status_code == 401:
@@ -305,7 +305,7 @@ def createAndAssociatefp(request):
 			messages.error(request, "Error in associating floating ip")
 			return redirect('/deployapp/')
 		response = response.json()
-		print(response)
+		# print(response)
 		portid = response["ports"][0]["id"]
 
 		data = {"floatingip": {"port_id": portid}}
@@ -319,6 +319,46 @@ def createAndAssociatefp(request):
 		app.save()
 		messages.success(request, "Floating ip associated: "+floatingip)
 		return redirect('/deployapp/')
+	else:
+		return HttpResponse(status=404)
+
+def createAndAssociatefpIns(request):
+	if request.method=="POST":
+		if 'userLogged' not in request.session:
+			redirect('/')
+		vmId = request.POST.get("vmId")
+		instance = Instance.objects.get(id=vmId)
+		instanceId = instance.instanceId
+		data = {"floatingip": {"floating_network_id": networkId["public"]}}
+		headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
+		response = restapi(apiEndpoints["createFloatingIp"], apiMethods["createFloatingIp"], data, headerToSend)
+		print(response.json())
+		if response.status_code!=201:
+			messages.error(request, "Error in creating floating ip")
+			return redirect('/deployinstance/')
+		response = response.json()
+		floatingip = response["floatingip"]["floating_ip_address"]
+		floatingipId = response["floatingip"]["id"]
+		print(floatingipId)
+		response = restapi(apiEndpoints["findPortofDevice"]+instanceId, apiMethods["findPortofDevice"], "", headerToSend)
+		if response.status_code!=200:
+			messages.error(request, "Error in associating floating ip")
+			return redirect('/deployinstance/')
+		response = response.json()
+		# print(response)
+		portid = response["ports"][0]["id"]
+
+		data = {"floatingip": {"port_id": portid}}
+		# print(apiEndpoints["associateFloatingIp"]+"/"+floatingipId, data)
+		response = restapi(apiEndpoints["associateFloatingIp"]+"/"+floatingipId, apiMethods["associateFloatingIp"], data, headerToSend)
+		print(response.json())
+		if response.status_code!=200:
+			messages.error(request, "Error in associating floating ip")
+			return redirect('/deployinstance/')
+		instance.floatingIp = floatingip
+		instance.save()
+		messages.success(request, "Floating ip associated: "+floatingip)
+		return redirect('/deployinstance/')
 	else:
 		return HttpResponse(status=404)
 
