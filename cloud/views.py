@@ -3,94 +3,9 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Instance, App
-import requests, json
+import requests, json, base64
+from .conf import *
 from ast import literal_eval
-import base64
-
-cloudAddress = "http://172.37.3.78";
-cloudPort = "8080"
-
-apiEndpoints = {
-	"identityAuthentication":cloudAddress + ":" + cloudPort + "/identity/v3/auth/tokens",
-	"bootInstance": cloudAddress + ":" + cloudPort + "/compute/v2.1/servers",
-	"instanceDetails" : cloudAddress + ":" + cloudPort + "/compute/v2.1/servers",
-	"linkToInstance" : cloudAddress  + ":" + cloudPort + "/compute/v2.1/servers",#add /{vm-id}/remote-consoles
-	"createFloatingIp": cloudAddress+":9696/v2.0/floatingips",
-	"findPortofDevice": cloudAddress+":9696/v2.0/ports?device_id=",#add instance id
-	"associateFloatingIp": cloudAddress+":9696/v2.0/floatingips",#add instance id
-	"grabLogs": cloudAddress+ ":"+ cloudPort +"/compute/v2.1/servers"#add /{vm-id}/action
-}
-
-apiMethods = {
-
-  "identityAuthentication" : "POST",
-  "bootInstance" : "POST",
-  "instanceDetails" : "GET",
-  "linkToInstance" : "POST",
-  "createFloatingIp" : "POST",
-  "findPortofDevice" : "GET",
-  "associateFloatingIp" : "PUT",
-  "grabLogs": "POST"
-
-}
-
-apiHeaders = {
-	"content-type": "application/json"
-}
-
-flavourId = {
-
-  "tiny" : "1",
-  "ds2G" : "d3",
-  "m1.small" : "2"
-
-}
-
-flavorSpec = {
-
-	"1" : {
-		"ram": "512MB",
-		"cpus": "1",
-		"disk": "1"
-	},
-	"d3": {
-		"ram": "2GB",
-		"cpus": "2",
-		"disk": "10"
-	},
-	"2": {
-			"ram": "2GB",
-			"cpus": "1",
-			"disk": "20"
-	}
-
-}
-
-serverSource = {
-
-  "cirros-server" : "ede11fe1-f1d2-4f38-88a1-738115a1ebc8",
-  "fedora-server" : "d7dbd057-f4e9-405f-9eeb-e9d0cc0d0ef2",
-  "ubuntu-server" : "4be973c8-811c-4e9a-8689-d596df447efa"
-  # "lubuntu-gui" : "2899f9c0-0900-4072-9c19-9da1d260e27c"
-
-}
-
-serverSourceType = {
-	
-	"cirros-server" : "image",
-  	"fedora-server" : "image",
-  	"ubuntu-server" : "image"
-  	# "lubuntu-gui" : "snapshot"
-
-}
-
-networkId = {
-
-	"private": "a827593e-50ea-4a2b-89d8-b87ba1e82ce4",
-	"public": "e3b0fc9c-f207-439d-9b9f-35de0ec45ceb"
-}
-
-
 
 
 def main(request):
@@ -100,6 +15,7 @@ def main(request):
 		headerToSend = apiHeaders.update({"X-Auth-Token": request.session["userToken"]})
 		allvms = []
 		data = {"os-getSPICEConsole": {"type": "spice-html5"}};
+		# data = {"os-getVNCConsole": {"type": "novnc"}};
 		if instances == None:
 			return render(request, "cloud/main.html")
 		for instance in instances:
@@ -116,13 +32,14 @@ def main(request):
 			response =  response.json()
 			if responseLink.status_code!=409:
 				responseLink = responseLink.json()
+				# print(responseLink)
 				url = responseLink["console"]["url"]
 			else:
 				url = "#"
 			flavorId = response["server"]["flavor"]["id"]
 			print(response["server"]["status"], type(response["server"]["status"]))
 			# if response["server"]["status"].encode("utf8") == "ACTVE":
-			allvms.append({"id": instance.id, "name": response["server"]["name"], "uuid": instance.instanceId, "ram": flavorSpec[flavorId]["ram"], "disk": flavorSpec[flavorId]["disk"], "cpus": flavorSpec[flavorId]["cpus"],"vm_state": response["server"]["OS-EXT-STS:vm_state"] ,"status": response["server"]["status"], "task_state": response["server"]["OS-EXT-STS:task_state"], "url": url})
+			allvms.append({"id": instance.id, "floatingIp":instance.floatingIp,"name": response["server"]["name"], "uuid": instance.instanceId, "ram": flavorSpec[flavorId]["ram"], "disk": flavorSpec[flavorId]["disk"], "cpus": flavorSpec[flavorId]["cpus"],"vm_state": response["server"]["OS-EXT-STS:vm_state"] ,"status": response["server"]["status"], "task_state": response["server"]["OS-EXT-STS:task_state"], "url": url})
 
 		data = {"allvms": allvms, "flavorSpec": flavorSpec}
 
@@ -137,7 +54,7 @@ def login(request):
 	if request.method == "POST":
 		username = request.POST.get("username")
 		password = request.POST.get("password")
-		data = {"auth": {"identity": {"methods": ["password"],"password": {"user": {"name": username,"domain": {"name": "Default"},"password": password}}}}}
+		#data = {"auth": {"identity": {"methods": ["password"],"password": {"user": {"name": username,"domain": {"name": "Default"},"password": password}}}}}
 		data = {
 		    "auth": {
 		        "identity": {
@@ -168,6 +85,7 @@ def login(request):
 			request.session["userToken"] = response.headers["x-subject-token"]
 			return redirect('/deployinstance/')
 		else:
+			print(response)
 			messages.error(request, "Invalid Credentials!")
 			return render(request, 'cloud/home.html', )
 		# return HttpResponse(response.status_code)
@@ -203,7 +121,7 @@ def createInstance(request, instanceName, source, flavor, userData64):
     	"server" : {
         "name" : instanceName,
         #"imageRef" : serverSource[image],
-        "key_name" : "mykey",#hardcoded
+        "key_name" : keyName,#hardcoded
         "flavorRef" : flavor,
         "networks" : [{
             "uuid" : networkId["private"]
@@ -222,7 +140,7 @@ def createInstance(request, instanceName, source, flavor, userData64):
         },
         "security_groups": [
             {
-                "name": "mysecgroup"
+                "name": secGrp
             }
         ],
         "user_data" : userData64
@@ -268,12 +186,7 @@ def restapi(url, method, data, headers):
 		response = requests.put(url, data=json.dumps(data), headers=apiHeaders)
 		return response
 
-def swtemplate(request):
-	if 'userLogged' in request.session:
-		return render(request, 'cloud/swtemplate.html', )
-	else:
-		return redirect('/')
-		#return HttpResponse(request.session["userToken"])
+
 
 #paasssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
 def deployapp(request):

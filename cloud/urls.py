@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from django.urls import path
-from . import views
+from . import views, softViews
 
 urlpatterns = [
     url(r'^deployinstance/$', views.main, name='main'),
@@ -8,7 +8,10 @@ urlpatterns = [
     url(r'^login/$', views.login, name='login'),
     url(r'^launchInstance/', views.launchInstance, name='launchInstance'),
     url(r'details/', views.details,name='details'),
-    url(r'^swtemplate/', views.swtemplate, name='swtemplate'),
+    url(r'^swtemplate/newapp/', softViews.swtemplate, name='swtemplate'),
+    url(r'^swtemplate/myapp/', softViews.swtemplatemy, name='swtemplate2'),
+    # url(r'^test/', softViews.test, name='swtemplate3'),
+    path('installsoft/<softId>/', softViews.installSoft, name='installSoft'),
     url(r'^deployapp/', views.deployapp, name='deployapp'),
     url(r'^buildAndDeploy/', views.buildAndDeploy, name='buildAndDeploy'),
     url(r'^createAndAssociatefp/', views.createAndAssociatefp, name='createAndAssociatefp'),

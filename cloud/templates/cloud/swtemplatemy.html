@@ -1,0 +1,47 @@
+{% extends 'cloud/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container" >
+	<ul class="nav nav-tabs nav-justified">
+		<li><a href="/swtemplate/newapp/">New Apps</a></li>
+    <li class="active"><a href="/swtemplate/myapp/">My Apps</a></li>
+	</ul>
+
+	<div class="tab-content">
+		<div id="menu1" class="tab-pane fade in active">
+      {% if installing %}
+      <div class="panel panel-info">
+        <div class="panel-heading">Installing Softwares...</div>
+        <div class="panel-body">
+          {% for software in installing %}
+          <span class="box"><img src="{% static '' %}softLogo/{{software.software.imageName}}" alt="softwareLogo"><div class="more">  <span class="swname">{{software.software.name}}</span><span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#soft{{software.id}}"> </span> </div></span>
+          {% endfor %}
+        </div>
+      </div>
+      {%endif%}
+      {% if failed %}
+      <div class="panel panel-warning">
+        <div class="panel-heading">Failed Software</div>
+        <div class="panel-body">
+          {% for software in failed %}
+          <span class="box"><img src="{% static '' %}softLogo/{{software.software.imageName}}" alt="softwareLogo"><div class="more">  <span class="swname">{{software.software.name}}</span><span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#soft{{software.id}}"> </span> </div></span>
+          {% endfor %}
+        </div>
+      </div>
+      {%endif%}
+      <div class="panel panel-default">
+        <div class="panel-heading">Installed Software</div>
+        <div class="panel-body">
+          {% if softwares %}
+          {% for software in softwares %}
+          <span class="box"><img src="{% static '' %}softLogo/{{software.software.imageName}}" alt="softwareLogo"><div class="more">  <span class="swname">{{software.software.name}}</span><span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#soft{{software.id}}"> </span> </div></span>
+          {% endfor %}
+          {%else%}
+          <span>You have not installed any softwares!</span>
+          {%endif%}
+        </div>
+      </div>
+		</div>
+	</div>
+</div>
+{% endblock %}

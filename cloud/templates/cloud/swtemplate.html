@@ -2,11 +2,59 @@
 {% load static %}
 {% block content %}
 <div class="container" >
+	<ul class="nav nav-tabs nav-justified">
+		<li class="active"><a href="/swtemplate/newapp/">New Apps</a></li>
+		<li><a href="/swtemplate/myapp/">My Apps</a></li>
+	</ul>
 
-  <h2  align="center">Software For You!</h2>
-  <div class="vms">
-    <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="swname">I am a Software</span> </div></span>
-    <span class="box"><img src="{% static 'comp.png' %}" alt=""><div class="more">  <span class="swname">I am a Software</span> </div></span>
+	<div class="tab-content">
+		<div id="home" class="tab-pane fade in active">
+			<div class="vms" id="newapps">
+				<h2  align="center">Software For You!</h2>
+				{% for software in softwares %}
+				<span class="box"><img src="{% static '' %}softLogo/{{software.imageName}}" alt="softwareLogo"><div class="more">  <span class="swname">{{software.name}}</span><span> <img onclick="" class="more" src="{% static 'menu.png' %}" alt="" data-toggle="modal" data-target="#soft{{software.id}}"> </span> </div></span>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+
+{%for software in softwares%}
+<div class="modal fade" id="soft{{software.id}}" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Install {{software.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <ul style="list-style-type: none">
+        	<li>Name: {{software.name}}</li>
+        	<li>Description: {{software.description}}</li>
+        	{%if software.dependencies%}
+        	<li>Following dependency will be installed:
+        		<ol>
+        		{%for dependency in software.dependencies%}
+        			<li>{{dependency.dependency.name}}</li>
+        		{%endfor%}
+        		</ol>
+        	</li>
+        	{%else%}
+        	<li>Dependencies: None</li>
+        	{% endif %}
+        </ul>
+      </div>
+      <div class="modal-footer">
+      	<form action="/installsoft/{{software.id}}/" class="simpForm" method="POST">
+      		{% csrf_token %}
+      		<input type="submit" class="btn btn-primary" name="installsoft" value="Install">
+      	</form>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
   </div>
 </div>
+{%endfor%}
 {% endblock %}

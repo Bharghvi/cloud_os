@@ -62,6 +62,32 @@ function getCookie(cname) {
   return "";
 }
 
+function makeApiCall(url, method, data, headers,onSuccessFunction){
+
+  data = JSON.stringify(data);
+  var xhr = new XMLHttpRequest();
+
+  xhr.addEventListener("readystatechange", function () {
+    if (this.readyState === 4) {
+      if (this.status == 200){
+        var response = this.response;
+        onSuccessFunction(response);
+      }
+    }
+  });
+  xhr.open(method, url);
+  xhr.setRequestHeader("content-type", "application/json");
+  for (var key in headers) {
+      if (headers.hasOwnProperty(key)) {
+          xhr.setRequestHeader(key,headers[key]);
+      }
+  }
+  xhr.send(data);
+
+}
+
+
+
 // var cloudIp = "http://192.168.43.81/";
 
 // var urls = {

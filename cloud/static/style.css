@@ -111,3 +111,13 @@ img.plus{
   background-color: #ddd;
   color: black;
 }
+
+div.panel{
+  margin-top: 40px;
+}
+
+.simpForm{
+  margin: 0;
+  padding: 0;
+  display: inline;
+}

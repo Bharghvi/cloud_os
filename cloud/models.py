@@ -6,6 +6,7 @@ from django.db import models
 class Instance(models.Model):
 	username = models.CharField(max_length=100)
 	instanceId = models.CharField(max_length=100)
+	floatingIp = models.CharField(max_length=100)
 
 	def __str__(self):
 		return self.username + ": " + self.instanceId
@@ -21,5 +22,33 @@ class App(models.Model):
 	
 	def __str__(self):
 		return self.username + ": " + self.appName
+
+class Software(models.Model):
+	name = models.CharField(max_length=100)
+	description = models.TextField(max_length=1000)
+	imageName = models.CharField(max_length=100, default="default.png")
+	scriptName = models.CharField(max_length=100)
+
+	def __str__(self):
+		return self.name
+
+class SoftDependency(models.Model):
+	depender = models.ForeignKey(Software, on_delete=models.CASCADE,  related_name="depender")
+	dependency = models.ForeignKey(Software, on_delete = models.CASCADE,  related_name="dependency")
+	order = models.IntegerField()
+
+	def __str__(self):
+		return self.depender.name+"->"+self.dependency.name
+
+class InstalledSoftware(models.Model):
+	username = models.CharField(max_length=100)
+	software = models.ForeignKey(Software, on_delete=models.CASCADE, related_name="software")
+	status = models.IntegerField()
+	# 0 installed
+	# 99 installing
+	# else error
+
+	def __str__(self):
+		return self.username+":"+self.software.name+":"+str(self.status)
 
 # Create your models here.
